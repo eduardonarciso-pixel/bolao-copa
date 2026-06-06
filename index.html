@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚽ Bolão da Copa</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<div id="tela-auth">
+  <div class="card-auth">
+    <div class="titulo-app">
+      <span class="icone">⚽</span>
+      <h1>Bolão da Copa</h1>
+      <p>Faça seus palpites e dispute com amigos!</p>
+    </div>
+    <div class="abas-auth">
+      <button class="aba-btn ativo" data-aba="login" onclick="alternarAba('login')">Entrar</button>
+      <button class="aba-btn" data-aba="cadastro" onclick="alternarAba('cadastro')">Cadastrar</button>
+    </div>
+    <div id="msg-auth" class="msg"></div>
+    <form id="form-login" class="form-auth" onsubmit="fazerLogin(event)">
+      <div class="form-grupo">
+        <label>E-mail</label>
+        <input type="email" id="login-email" placeholder="seu@email.com" required>
+      </div>
+      <div class="form-grupo">
+        <label>Senha</label>
+        <input type="password" id="login-senha" placeholder="Sua senha" required>
+      </div>
+      <button type="submit" class="btn btn-primary">🔑 Entrar</button>
+    </form>
+    <form id="form-cadastro" class="form-auth" style="display:none" onsubmit="fazerCadastro(event)">
+      <div class="form-grupo">
+        <label>Nome</label>
+        <input type="text" id="cad-nome" placeholder="Seu nome" required>
+      </div>
+      <div class="form-grupo">
+        <label>E-mail</label>
+        <input type="email" id="cad-email" placeholder="seu@email.com" required>
+      </div>
+      <div class="form-grupo">
+        <label>Senha (mín. 6 caracteres)</label>
+        <input type="password" id="cad-senha" placeholder="Crie uma senha" required>
+      </div>
+      <button type="submit" class="btn btn-primary">🚀 Criar conta</button>
+    </form>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="logo">⚽ Bolão da Copa</div>
+    <nav>
+      <button data-tela="tela-jogos" class="ativo" onclick="mostrarTela('tela-jogos')">🏟️ Jogos</button>
+      <button data-tela="tela-ranking" onclick="mostrarTela('tela-ranking')">🏆 Ranking</button>
+      <button data-tela="tela-perfil" onclick="mostrarTela('tela-perfil')">👤 Perfil</button>
+      <button id="btn-admin" data-tela="tela-admin" onclick="mostrarTela('tela-admin')" style="display:none">⚙️ Admin</button>
+      <button class="btn-sair" onclick="fazerLogout()">Sair</button>
+    </nav>
+  </header>
+
+  <div id="tela-jogos" class="tela ativa">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+      <h2 class="secao-titulo" style="margin:0">🏟️ Jogos</h2>
+      <span style="font-size:0.8rem;color:#666">Olá, <strong id="header-nome"></strong> 👋</span>
+    </div>
+    <div class="filtros">
+      <button class="filtro-btn ativo" data-filtro="todos" onclick="setFiltro('todos')">Todos</button>
+      <button class="filtro-btn" data-filtro="abertos" onclick="setFiltro('abertos')">⏳ Abertos</button>
+      <button class="filtro-btn" data-filtro="encerrados" onclick="setFiltro('encerrados')">✅ Encerrados</button>
+    </div>
+    <div class="card" style="background:#fffbea;border-left:4px solid #f5c518;font-size:0.85rem;color:#555;padding:12px 16px;margin-bottom:16px;">
+      ⭐ <strong>+10pts</strong> placar exato &nbsp;|&nbsp;
+      ✓ <strong>+7pts</strong> vencedor + diferença &nbsp;|&nbsp;
+      ✓ <strong>+5pts</strong> vencedor &nbsp;|&nbsp;
+      ✗ <strong>+0pts</strong> erro
+    </div>
+    <div id="lista-jogos"></div>
+  </div>
+
+  <div id="tela-ranking" class="tela">
+    <h2 class="secao-titulo">🏆 Ranking Geral</h2>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="tabela-ranking"></div>
+    </div>
+  </div>
+
+  <div id="tela-perfil" class="tela">
+    <div class="perfil-header">
+      <span class="perfil-avatar">👤</span>
+      <div class="perfil-nome" id="perfil-nome"></div>
+      <div class="perfil-email" id="perfil-email"></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-numero" id="stat-pontos">—</div>
+        <div class="stat-label">Pontos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-numero" id="stat-palpites">—</div>
+        <div class="stat-label">Palpites</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-numero" id="stat-acertos">—</div>
+        <div class="stat-label">Acertos</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="secao-titulo">🔐 Sua conta</h3>
+      <p style="font-size:0.85rem;color:#666;margin-bottom:16px;">Para obter seu UID de administrador, abra o console (F12) e execute:</p>
+      <code style="background:#f4f4f4;padding:8px 12px;border-radius:6px;display:block;font-size:0.85rem;margin-bottom:16px;">firebase.auth().currentUser.uid</code>
+      <button class="btn btn-perigo" onclick="fazerLogout()" style="width:100%">🚪 Sair da conta</button>
+    </div>
+  </div>
+
+  <div id="tela-admin" class="tela">
+    <h2 class="secao-titulo">⚙️ Painel Admin</h2>
+    <div class="admin-grid">
+      <div class="admin-card">
+        <h3>➕ Adicionar Jogo</h3>
+        <form id="form-novo-jogo" onsubmit="adicionarJogo(event)">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-grupo">
+              <label>Bandeira Time 1 (emoji)</label>
+              <input type="text" id="novo-flag1" placeholder="🇧🇷" maxlength="4">
+            </div>
+            <div class="form-grupo">
+              <label>Bandeira Time 2 (emoji)</label>
+              <input type="text" id="novo-flag2" placeholder="🇦🇷" maxlength="4">
+            </div>
+            <div class="form-grupo">
+              <label>Time 1 *</label>
+              <input type="text" id="novo-time1" placeholder="Brasil" required>
+            </div>
+            <div class="form-grupo">
+              <label>Time 2 *</label>
+              <input type="text" id="novo-time2" placeholder="Argentina" required>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div class="form-grupo">
+              <label>Data e Hora *</label>
+              <input type="datetime-local" id="novo-data" required>
+            </div>
+            <div class="form-grupo">
+              <label>Fase</label>
+              <select id="novo-fase">
+                <option value="Fase de Grupos">Fase de Grupos</option>
+                <option value="Oitavas de Final">Oitavas de Final</option>
+                <option value="Quartas de Final">Quartas de Final</option>
+                <option value="Semifinal">Semifinal</option>
+                <option value="3º Lugar">3º Lugar</option>
+                <option value="Final">Final</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:auto;padding:10px 24px;">➕ Adicionar Jogo</button>
+        </form>
+      </div>
+      <div class="admin-card">
+        <h3>📋 Jogos Cadastrados</h3>
+        <p style="font-size:0.82rem;color:#666;margin-bottom:12px;">
+          💾 Salva resultado &nbsp;|&nbsp; 🔒 Encerra &nbsp;|&nbsp; 🔓 Reabre
+        </p>
+        <div id="lista-admin-jogos"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
