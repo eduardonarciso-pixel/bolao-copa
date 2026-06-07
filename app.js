@@ -338,61 +338,67 @@ function setFiltro(filtro) {
 
 // ---- PREMIAÇÃO ----
 
+function calcularPremios(total) {
+  return {
+    premio1: Math.floor(total * 0.60),
+    premio2: Math.floor(total * 0.25),
+    premio3: Math.floor(total * 0.10),
+    admin:   Math.floor(total * 0.05)
+  };
+}
+
+function renderPremiacao(totalParticipantes) {
+  const valorCota = 50;
+  const totalArrecadado = totalParticipantes * valorCota;
+  const { premio1, premio2, premio3, admin } = calcularPremios(totalArrecadado);
+
+  return `
+    <div class="premiacao-card">
+      <div class="premiacao-total-label">💰 Total Arrecadado</div>
+      <div class="premiacao-total-valor">R$ ${totalArrecadado.toLocaleString('pt-BR')}</div>
+      <div class="premiacao-total-sub">${totalParticipantes} participante(s) × R$ ${valorCota}</div>
+    </div>
+    <div class="premiacao-grid">
+      <div class="premiacao-item pos-1">
+        <div class="premiacao-pos">🥇</div>
+        <div class="premiacao-titulo">1º Lugar</div>
+        <div class="premiacao-pct">60%</div>
+        <div class="premiacao-valor">R$ ${premio1.toLocaleString('pt-BR')}</div>
+      </div>
+      <div class="premiacao-item pos-2">
+        <div class="premiacao-pos">🥈</div>
+        <div class="premiacao-titulo">2º Lugar</div>
+        <div class="premiacao-pct">25%</div>
+        <div class="premiacao-valor">R$ ${premio2.toLocaleString('pt-BR')}</div>
+      </div>
+      <div class="premiacao-item pos-3">
+        <div class="premiacao-pos">🥉</div>
+        <div class="premiacao-titulo">3º Lugar</div>
+        <div class="premiacao-pct">10%</div>
+        <div class="premiacao-valor">R$ ${premio3.toLocaleString('pt-BR')}</div>
+      </div>
+      <div class="premiacao-item pos-admin">
+        <div class="premiacao-pos">⚙️</div>
+        <div class="premiacao-titulo">Organização</div>
+        <div class="premiacao-pct">5%</div>
+        <div class="premiacao-valor">R$ ${admin.toLocaleString('pt-BR')}</div>
+      </div>
+    </div>
+    <div class="card" style="text-align:center; font-size:0.82rem; color:rgba(255,255,255,0.5);">
+      Valores atualizados automaticamente conforme novos participantes se inscrevem.
+    </div>
+  `;
+}
+
 async function carregarPremiacao() {
   const container = document.getElementById('conteudo-premiacao');
+  if (!container) return;
   try {
     const snap = await db.collection('usuarios').get();
-    const totalParticipantes = snap.size;
-    const valorCota = 50;
-    const totalArrecadado = totalParticipantes * valorCota;
-
-    const premio1 = Math.floor(totalArrecadado * 0.60);
-    const premio2 = Math.floor(totalArrecadado * 0.25);
-    const premio3 = Math.floor(totalArrecadado * 0.10);
-    const admin   = Math.floor(totalArrecadado * 0.05);
-
-    container.innerHTML = `
-      <div class="premiacao-card">
-        <div class="premiacao-total">
-          <div class="premiacao-total-label">💰 Total Arrecadado</div>
-          <div class="premiacao-total-valor">R$ ${totalArrecadado.toLocaleString('pt-BR')}</div>
-          <div class="premiacao-total-sub">${totalParticipantes} participante(s) × R$ ${valorCota}</div>
-        </div>
-      </div>
-
-      <div class="premiacao-grid">
-        <div class="premiacao-item pos-1">
-          <div class="premiacao-pos">🥇</div>
-          <div class="premiacao-titulo">1º Lugar</div>
-          <div class="premiacao-pct">60%</div>
-          <div class="premiacao-valor">R$ ${premio1.toLocaleString('pt-BR')}</div>
-        </div>
-        <div class="premiacao-item pos-2">
-          <div class="premiacao-pos">🥈</div>
-          <div class="premiacao-titulo">2º Lugar</div>
-          <div class="premiacao-pct">25%</div>
-          <div class="premiacao-valor">R$ ${premio2.toLocaleString('pt-BR')}</div>
-        </div>
-        <div class="premiacao-item pos-3">
-          <div class="premiacao-pos">🥉</div>
-          <div class="premiacao-titulo">3º Lugar</div>
-          <div class="premiacao-pct">10%</div>
-          <div class="premiacao-valor">R$ ${premio3.toLocaleString('pt-BR')}</div>
-        </div>
-        <div class="premiacao-item pos-admin">
-          <div class="premiacao-pos">⚙️</div>
-          <div class="premiacao-titulo">Organização</div>
-          <div class="premiacao-pct">5%</div>
-          <div class="premiacao-valor">R$ ${admin.toLocaleString('pt-BR')}</div>
-        </div>
-      </div>
-
-      <div class="card" style="text-align:center; font-size:0.82rem; color:rgba(255,255,255,0.5); margin-top:8px;">
-        Os valores são atualizados automaticamente conforme novos participantes se inscrevem.
-      </div>
-    `;
+    container.innerHTML = renderPremiacao(snap.size);
   } catch(e) {
-    container.innerHTML = '<div class="empty-state"><div class="icone">⚠️</div><p>Erro ao carregar premiação.</p></div>';
+    // Se falhar, mostra com 0 participantes
+    container.innerHTML = renderPremiacao(0);
   }
 }
 
