@@ -12,6 +12,29 @@ let usuarioAtual = null;
 let jogosCache = [];
 let filtroAtivo = 'todos';
 
+// ---- BANDEIRAS ----
+const codigosBandeiras = {
+  'México': 'mx', 'África do Sul': 'za', 'Coreia do Sul': 'kr', 'República Tcheca': 'cz',
+  'Canadá': 'ca', 'Bósnia': 'ba', 'Catar': 'qa', 'Suíça': 'ch',
+  'Brasil': 'br', 'Marrocos': 'ma', 'Haiti': 'ht', 'Escócia': 'gb-sct',
+  'Estados Unidos': 'us', 'Paraguai': 'py', 'Austrália': 'au', 'Turquia': 'tr',
+  'Alemanha': 'de', 'Curaçao': 'cw', 'Costa do Marfim': 'ci', 'Equador': 'ec',
+  'Holanda': 'nl', 'Japão': 'jp', 'Suécia': 'se', 'Tunísia': 'tn',
+  'Bélgica': 'be', 'Egito': 'eg', 'Irã': 'ir', 'Nova Zelândia': 'nz',
+  'Espanha': 'es', 'Cabo Verde': 'cv', 'Arábia Saudita': 'sa', 'Uruguai': 'uy',
+  'França': 'fr', 'Senegal': 'sn', 'Iraque': 'iq', 'Noruega': 'no',
+  'Áustria': 'at', 'Jordânia': 'jo', 'Argentina': 'ar', 'Argélia': 'dz',
+  'Portugal': 'pt', 'RD Congo': 'cd', 'Uzbequistão': 'uz', 'Colômbia': 'co',
+  'Inglaterra': 'gb-eng', 'Croácia': 'hr', 'Gana': 'gh', 'Panamá': 'pa',
+  'A definir': null
+};
+
+function obterBandeira(time) {
+  const cod = codigosBandeiras[time];
+  if (!cod) return '<span style="font-size:1.8rem">🏳️</span>';
+  return `<img src="https://flagcdn.com/48x36/${cod}.png" alt="${time}" style="width:48px;height:36px;object-fit:cover;border-radius:4px;">`;
+}
+
 // ---- UTILITÁRIOS ----
 
 function mostrarToast(msg, tipo = '') {
@@ -223,7 +246,7 @@ function renderizarJogos(jogos, palpitesMap) {
 
       <div class="jogo-times">
         <div class="time">
-          <span class="time-bandeira">${jogo.bandeira1 || '🏳️'}</span>
+          <span class="time-bandeira">${obterBandeira(jogo.time1)}</span>
           <span class="time-nome">${jogo.time1}</span>
         </div>
 
@@ -238,7 +261,7 @@ function renderizarJogos(jogos, palpitesMap) {
         </div>
 
         <div class="time">
-          <span class="time-bandeira">${jogo.bandeira2 || '🏳️'}</span>
+          <span class="time-bandeira">${obterBandeira(jogo.time2)}</span>
           <span class="time-nome">${jogo.time2}</span>
         </div>
       </div>
