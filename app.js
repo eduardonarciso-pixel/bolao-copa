@@ -89,6 +89,7 @@ function mostrarTela(id) {
   });
   if (id === 'tela-jogos') carregarJogos();
   if (id === 'tela-ranking') carregarRanking();
+  if (id === 'tela-premiacao') carregarPremiacao();
   if (id === 'tela-grupos') carregarGrupos();
   if (id === 'tela-admin') carregarAdmin();
   if (id === 'tela-perfil') carregarPerfil();
@@ -333,6 +334,66 @@ function setFiltro(filtro) {
     b.classList.toggle('ativo', b.dataset.filtro === filtro);
   });
   carregarJogos();
+}
+
+// ---- PREMIAÇÃO ----
+
+async function carregarPremiacao() {
+  const container = document.getElementById('conteudo-premiacao');
+  try {
+    const snap = await db.collection('usuarios').get();
+    const totalParticipantes = snap.size;
+    const valorCota = 50;
+    const totalArrecadado = totalParticipantes * valorCota;
+
+    const premio1 = Math.floor(totalArrecadado * 0.60);
+    const premio2 = Math.floor(totalArrecadado * 0.25);
+    const premio3 = Math.floor(totalArrecadado * 0.10);
+    const admin   = Math.floor(totalArrecadado * 0.05);
+
+    container.innerHTML = `
+      <div class="premiacao-card">
+        <div class="premiacao-total">
+          <div class="premiacao-total-label">💰 Total Arrecadado</div>
+          <div class="premiacao-total-valor">R$ ${totalArrecadado.toLocaleString('pt-BR')}</div>
+          <div class="premiacao-total-sub">${totalParticipantes} participante(s) × R$ ${valorCota}</div>
+        </div>
+      </div>
+
+      <div class="premiacao-grid">
+        <div class="premiacao-item pos-1">
+          <div class="premiacao-pos">🥇</div>
+          <div class="premiacao-titulo">1º Lugar</div>
+          <div class="premiacao-pct">60%</div>
+          <div class="premiacao-valor">R$ ${premio1.toLocaleString('pt-BR')}</div>
+        </div>
+        <div class="premiacao-item pos-2">
+          <div class="premiacao-pos">🥈</div>
+          <div class="premiacao-titulo">2º Lugar</div>
+          <div class="premiacao-pct">25%</div>
+          <div class="premiacao-valor">R$ ${premio2.toLocaleString('pt-BR')}</div>
+        </div>
+        <div class="premiacao-item pos-3">
+          <div class="premiacao-pos">🥉</div>
+          <div class="premiacao-titulo">3º Lugar</div>
+          <div class="premiacao-pct">10%</div>
+          <div class="premiacao-valor">R$ ${premio3.toLocaleString('pt-BR')}</div>
+        </div>
+        <div class="premiacao-item pos-admin">
+          <div class="premiacao-pos">⚙️</div>
+          <div class="premiacao-titulo">Organização</div>
+          <div class="premiacao-pct">5%</div>
+          <div class="premiacao-valor">R$ ${admin.toLocaleString('pt-BR')}</div>
+        </div>
+      </div>
+
+      <div class="card" style="text-align:center; font-size:0.82rem; color:rgba(255,255,255,0.5); margin-top:8px;">
+        Os valores são atualizados automaticamente conforme novos participantes se inscrevem.
+      </div>
+    `;
+  } catch(e) {
+    container.innerHTML = '<div class="empty-state"><div class="icone">⚠️</div><p>Erro ao carregar premiação.</p></div>';
+  }
 }
 
 // ---- GRUPOS ----
@@ -732,19 +793,32 @@ async function carregarParticipantes() {
             <strong>${u.nome || u.email}</strong>
             <span>${u.email}</span>
           </div>
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
             ${u.pago
-              ? '<span style="background:#e8f8ee;color:#27ae60;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">✅ Pago</span>'
-              : '<span style="background:#fde8e8;color:#e74c3c;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">⏳ Pendente</span>'
+              ? '<span style="background:rgba(46,204,113,0.2);color:#2ecc71;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">✅ Pago</span>'
+              : '<span style="background:rgba(231,76,60,0.2);color:#e74c3c;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">⏳ Pendente</span>'
             }
-            ${!u.pago ? `<button class="btn btn-sm" style="background:#27ae60;color:#fff;" onclick="confirmarPagamento('${u.uid}')">✅ Confirmar</button>` : ''}
-            <button class="btn btn-perigo btn-sm" onclick="excluirParticipante('${u.uid}', '${u.nome || u.email}')">🗑️</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="editarNome('${u.uid}', '${(u.nome || '').replace(/'/g, "\\'")}')">✏️</button>
+            ${!u.pago ? `<button class="btn btn-sm" style="background:#27ae60;color:#fff;" onclick="confirmarPagamento('${u.uid}')">✅</button>` : ''}
+            <button class="btn btn-perigo btn-sm" onclick="excluirParticipante('${u.uid}', '${(u.nome || u.email).replace(/'/g, "\\'")}')">🗑️</button>
           </div>
         </div>
       `).join('')}
     `;
   } catch (e) {
     container.innerHTML = '<p style="color:red">Erro ao carregar participantes.</p>';
+  }
+}
+
+async function editarNome(uid, nomeAtual) {
+  const novoNome = prompt('Digite o novo nome:', nomeAtual);
+  if (!novoNome || novoNome.trim() === '' || novoNome.trim() === nomeAtual) return;
+  try {
+    await db.collection('usuarios').doc(uid).update({ nome: novoNome.trim() });
+    mostrarToast('Nome atualizado! ✅', 'sucesso');
+    carregarParticipantes();
+  } catch (e) {
+    mostrarToast('Erro ao atualizar nome.', 'erro');
   }
 }
 
