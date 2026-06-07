@@ -73,6 +73,7 @@
     <nav>
       <button data-tela="tela-jogos" class="ativo" onclick="mostrarTela('tela-jogos')">🏟️ Jogos</button>
       <button data-tela="tela-ranking" onclick="mostrarTela('tela-ranking')">🏆 Ranking</button>
+      <button data-tela="tela-grupos" onclick="mostrarTela('tela-grupos')">📊 Grupos</button>
       <button data-tela="tela-perfil" onclick="mostrarTela('tela-perfil')">👤 Perfil</button>
       <button id="btn-admin" data-tela="tela-admin" onclick="mostrarTela('tela-admin')" style="display:none">
         ⚙️ Admin
@@ -139,6 +140,14 @@
       <div id="tabela-ranking">
         <div class="loading"><div class="spinner"></div> Carregando...</div>
       </div>
+    </div>
+  </div>
+
+  <!-- TELA: GRUPOS -->
+  <div id="tela-grupos" class="tela">
+    <h2 class="secao-titulo">📊 Classificação dos Grupos</h2>
+    <div id="tabela-grupos">
+      <div class="loading"><div class="spinner"></div> Carregando...</div>
     </div>
   </div>
 

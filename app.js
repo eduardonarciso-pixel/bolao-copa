@@ -89,6 +89,7 @@ function mostrarTela(id) {
   });
   if (id === 'tela-jogos') carregarJogos();
   if (id === 'tela-ranking') carregarRanking();
+  if (id === 'tela-grupos') carregarGrupos();
   if (id === 'tela-admin') carregarAdmin();
   if (id === 'tela-perfil') carregarPerfil();
 }
@@ -332,6 +333,121 @@ function setFiltro(filtro) {
     b.classList.toggle('ativo', b.dataset.filtro === filtro);
   });
   carregarJogos();
+}
+
+// ---- GRUPOS ----
+
+async function carregarGrupos() {
+  const container = document.getElementById('tabela-grupos');
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+
+  try {
+    const snap = await db.collection('jogos').orderBy('data').get();
+    const jogos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Filtrar só jogos de grupos com resultado
+    const gruposNomes = ['Grupo A','Grupo B','Grupo C','Grupo D','Grupo E','Grupo F',
+                         'Grupo G','Grupo H','Grupo I','Grupo J','Grupo K','Grupo L'];
+
+    const dadosGrupos = {};
+    gruposNomes.forEach(g => { dadosGrupos[g] = {}; });
+
+    jogos.forEach(j => {
+      if (!gruposNomes.includes(j.fase)) return;
+
+      const grupo = j.fase;
+      if (!dadosGrupos[grupo]) dadosGrupos[grupo] = {};
+
+      // Inicializar times
+      [j.time1, j.time2].forEach(time => {
+        if (!dadosGrupos[grupo][time]) {
+          dadosGrupos[grupo][time] = { time, J:0, V:0, E:0, D:0, GP:0, GC:0, P:0 };
+        }
+      });
+
+      // Só calcular se jogo encerrado com resultado
+      if (!j.encerrado || !j.resultado) return;
+
+      const g1 = j.resultado.gols1;
+      const g2 = j.resultado.gols2;
+      const t1 = dadosGrupos[grupo][j.time1];
+      const t2 = dadosGrupos[grupo][j.time2];
+
+      t1.J++; t2.J++;
+      t1.GP += g1; t1.GC += g2;
+      t2.GP += g2; t2.GC += g1;
+
+      if (g1 > g2) {
+        t1.V++; t1.P += 3;
+        t2.D++;
+      } else if (g1 < g2) {
+        t2.V++; t2.P += 3;
+        t1.D++;
+      } else {
+        t1.E++; t1.P++;
+        t2.E++; t2.P++;
+      }
+    });
+
+    // Renderizar
+    let html = '';
+    gruposNomes.forEach(grupo => {
+      const times = Object.values(dadosGrupos[grupo]);
+      if (times.length === 0) return;
+
+      times.sort((a, b) => b.P - a.P || (b.GP - b.GC) - (a.GP - a.GC) || b.GP - a.GP);
+
+      html += `
+        <div class="grupo-card">
+          <h3 class="grupo-titulo">${grupo}</h3>
+          <table class="grupo-tabela">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Time</th>
+                <th title="Jogos">J</th>
+                <th title="Vitórias">V</th>
+                <th title="Empates">E</th>
+                <th title="Derrotas">D</th>
+                <th title="Gols Pró">GP</th>
+                <th title="Gols Contra">GC</th>
+                <th title="Saldo de Gols">SG</th>
+                <th title="Pontos">P</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${times.map((t, i) => `
+                <tr class="${i < 2 ? 'classificado' : i === 2 ? 'possivel' : ''}">
+                  <td>${i + 1}</td>
+                  <td class="time-cell">
+                    ${obterBandeira(t.time)}
+                    <span>${t.time}</span>
+                  </td>
+                  <td>${t.J}</td>
+                  <td>${t.V}</td>
+                  <td>${t.E}</td>
+                  <td>${t.D}</td>
+                  <td>${t.GP}</td>
+                  <td>${t.GC}</td>
+                  <td>${t.GP - t.GC >= 0 ? '+' : ''}${t.GP - t.GC}</td>
+                  <td><strong>${t.P}</strong></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div class="grupo-legenda">
+            <span class="leg-classificado">■</span> Classificado &nbsp;
+            <span class="leg-possivel">■</span> Possível 3º
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html || '<div class="empty-state"><div class="icone">📊</div><p>Nenhum resultado lançado ainda.</p></div>';
+  } catch(e) {
+    console.error(e);
+    container.innerHTML = '<div class="empty-state"><div class="icone">⚠️</div><p>Erro ao carregar grupos.</p></div>';
+  }
 }
 
 // ---- RANKING ----
