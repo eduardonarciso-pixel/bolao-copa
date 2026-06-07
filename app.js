@@ -470,6 +470,7 @@ async function carregarAdmin() {
 
   const listaAdmin = document.getElementById('lista-admin-jogos');
   listaAdmin.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+  carregarParticipantes();
 
   try {
     const snap = await db.collection('jogos').orderBy('data').get();
@@ -585,5 +586,76 @@ async function reabrirJogo(jogoId) {
     carregarAdmin();
   } catch (e) {
     mostrarToast('Erro ao reabrir jogo.', 'erro');
+  }
+}
+
+// ---- PARTICIPANTES ----
+
+async function carregarParticipantes() {
+  const container = document.getElementById('lista-participantes');
+  if (!container) return;
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+
+  try {
+    const snap = await db.collection('usuarios').orderBy('criadoEm').get();
+    const usuarios = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+
+    if (usuarios.length === 0) {
+      container.innerHTML = '<div class="empty-state"><div class="icone">👥</div><p>Nenhum participante ainda.</p></div>';
+      return;
+    }
+
+    const pagos = usuarios.filter(u => u.pago).length;
+    container.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <span style="font-size:0.85rem;color:#666;">${usuarios.length} participante(s) · <strong style="color:#27ae60">${pagos} pago(s)</strong> · <strong style="color:#e74c3c">${usuarios.length - pagos} pendente(s)</strong></span>
+      </div>
+      ${usuarios.map(u => `
+        <div class="admin-jogo-item" style="align-items:center;">
+          <div class="admin-jogo-info">
+            <strong>${u.nome || u.email}</strong>
+            <span>${u.email}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${u.pago
+              ? '<span style="background:#e8f8ee;color:#27ae60;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">✅ Pago</span>'
+              : '<span style="background:#fde8e8;color:#e74c3c;padding:4px 10px;border-radius:20px;font-size:0.78rem;font-weight:700;">⏳ Pendente</span>'
+            }
+            ${!u.pago ? `<button class="btn btn-sm" style="background:#27ae60;color:#fff;" onclick="confirmarPagamento('${u.uid}')">✅ Confirmar</button>` : ''}
+            <button class="btn btn-perigo btn-sm" onclick="excluirParticipante('${u.uid}', '${u.nome || u.email}')">🗑️</button>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  } catch (e) {
+    container.innerHTML = '<p style="color:red">Erro ao carregar participantes.</p>';
+  }
+}
+
+async function confirmarPagamento(uid) {
+  try {
+    await db.collection('usuarios').doc(uid).update({ pago: true });
+    mostrarToast('Pagamento confirmado! ✅', 'sucesso');
+    carregarParticipantes();
+  } catch (e) {
+    mostrarToast('Erro ao confirmar pagamento.', 'erro');
+  }
+}
+
+async function excluirParticipante(uid, nome) {
+  if (!confirm(`Excluir "${nome}"? Isso apagará também todos os palpites desta pessoa.`)) return;
+  try {
+    // Apagar palpites do usuário
+    const palpitesSnap = await db.collection('palpites').where('uid', '==', uid).get();
+    const batch = db.batch();
+    palpitesSnap.forEach(d => batch.delete(d.ref));
+    // Apagar usuário
+    batch.delete(db.collection('usuarios').doc(uid));
+    await batch.commit();
+    // Apagar conta do Auth (só funciona se for o próprio usuário, senão ignora)
+    mostrarToast('Participante excluído! 🗑️', 'sucesso');
+    carregarParticipantes();
+  } catch (e) {
+    mostrarToast('Erro ao excluir participante.', 'erro');
   }
 }
