@@ -20,7 +20,21 @@ const codigosBandeiras = {
   'Colômbia': 'co', 'Chile': 'cl', 'Peru': 'pe', 'Paraguai': 'py',
   'Venezuela': 've', 'Bolívia': 'bo', 'Costa Rica': 'cr', 'Panamá': 'pa',
   'Jamaica': 'jm', 'Honduras': 'hn', 'Quirguistão': 'kg', 'Iraque': 'iq',
-  'Nova Zelândia': 'nz', 'África do Sul': 'za', 'Egito': 'eg',
+  'Nova Zelândia': 'nz', 'África do Sul': 'za','República Tcheca': 'cz',
+'Catar': 'qa',
+'Estados Unidos': 'us',
+'Bósnia': 'ba',
+'Haiti': 'ht',
+'Escócia': 'gb-sct',
+'Costa do Marfim': 'ci',
+'Curaçao': 'cw',
+'RD Congo': 'cd',
+'Uzbequistão': 'uz',
+'Áustria': 'at',
+'Jordânia': 'jo',
+'Argélia': 'dz',
+'Cabo Verde': 'cv',
+'Suécia': 'se', 'Egito': 'eg',
 };
 
 function obterBandeira(time) {
