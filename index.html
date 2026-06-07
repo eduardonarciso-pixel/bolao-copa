@@ -60,6 +60,7 @@
       <button data-tela="tela-ranking" onclick="mostrarTela('tela-ranking')">🏆 Ranking</button>
       <button data-tela="tela-perfil" onclick="mostrarTela('tela-perfil')">👤 Perfil</button>
       <button id="btn-admin" data-tela="tela-admin" onclick="mostrarTela('tela-admin')" style="display:none">⚙️ Admin</button>
+      <button data-tela="tela-regras" onclick="mostrarTela('tela-regras')">📋 Regras</button>
       <button class="btn-sair" onclick="fazerLogout()">Sair</button>
     </nav>
   </header>
@@ -172,7 +173,64 @@
     </div>
   </div>
 </div>
+<div id="tela-regras" class="tela">
+  <h2 class="secao-titulo">📋 Regulamento do Bolão</h2>
 
+  <div class="card">
+    <h3 class="secao-titulo">👥 Participação</h3>
+    <ul style="line-height:2; padding-left:20px; color:rgba(255,255,255,0.85)">
+      <li>Inscrição mediante pagamento de <strong>R$ 50,00 via PIX</strong></li>
+      <li>Máximo de <strong>50 participantes</strong></li>
+      <li>Prazo: <strong>até o dia do 1º jogo (11/06/2026)</strong></li>
+      <li>Não há devolução após o início da Copa</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h3 class="secao-titulo">⭐ Pontuação</h3>
+    <table class="ranking-tabela">
+      <thead><tr><th>Resultado</th><th>Pontos</th></tr></thead>
+      <tbody>
+        <tr><td>⭐ Placar exato</td><td><span class="pontos-destaque">10 pts</span></td></tr>
+        <tr><td>✓ Vencedor + diferença de gols</td><td><span class="pontos-destaque">7 pts</span></td></tr>
+        <tr><td>✓ Apenas o vencedor</td><td><span class="pontos-destaque">5 pts</span></td></tr>
+        <tr><td>✗ Errou</td><td><span class="pontos-destaque">0 pts</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 class="secao-titulo">🏆 Premiação</h3>
+    <table class="ranking-tabela">
+      <thead><tr><th>Colocação</th><th>%</th><th>50 participantes</th></tr></thead>
+      <tbody>
+        <tr><td>🥇 1º lugar</td><td>60%</td><td><span class="pontos-destaque">R$ 1.500</span></td></tr>
+        <tr><td>🥈 2º lugar</td><td>25%</td><td><span class="pontos-destaque">R$ 625</span></td></tr>
+        <tr><td>🥉 3º lugar</td><td>10%</td><td><span class="pontos-destaque">R$ 250</span></td></tr>
+        <tr><td>⚙️ Organização</td><td>5%</td><td><span class="pontos-destaque">R$ 125</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3 class="secao-titulo">🔀 Desempate</h3>
+    <ol style="line-height:2; padding-left:20px; color:rgba(255,255,255,0.85)">
+      <li>Maior número de <strong>placares exatos</strong></li>
+      <li>Maior número de <strong>acertos parciais</strong></li>
+      <li><strong>Sorteio</strong> entre os empatados</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h3 class="secao-titulo">📌 Regras Gerais</h3>
+    <ul style="line-height:2; padding-left:20px; color:rgba(255,255,255,0.85)">
+      <li>Palpites devem ser feitos <strong>antes do início de cada jogo</strong></li>
+      <li>Jogos sem palpite valem <strong>0 pontos</strong></li>
+      <li>Prêmios pagos em até <strong>3 dias úteis</strong> após a final</li>
+      <li>O ranking é atualizado automaticamente após cada jogo</li>
+    </ul>
+  </div>
+</div>
 <div id="toast"></div>
 <script src="firebase-config.js"></script>
 <script src="app.js"></script>
