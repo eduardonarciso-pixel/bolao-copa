@@ -342,7 +342,7 @@ async function carregarGrupos() {
   container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
 
   try {
-    const snap = await db.collection('jogos').orderBy('data').get();
+    const snap = await db.collection('jogos').get();
     const jogos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
     // Filtrar só jogos de grupos com resultado
@@ -445,8 +445,8 @@ async function carregarGrupos() {
 
     container.innerHTML = html || '<div class="empty-state"><div class="icone">📊</div><p>Nenhum resultado lançado ainda.</p></div>';
   } catch(e) {
-    console.error(e);
-    container.innerHTML = '<div class="empty-state"><div class="icone">⚠️</div><p>Erro ao carregar grupos.</p></div>';
+    console.error('Erro grupos:', e);
+    container.innerHTML = `<div class="empty-state"><div class="icone">⚠️</div><p>Erro: ${e.message}</p></div>`;
   }
 }
 
