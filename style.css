@@ -675,13 +675,40 @@ header .btn-sair {
 #toast.erro-toast { background: rgba(192,57,43,0.95); border-color: var(--vermelho); }
 
 /* ========= RESPONSIVO ========= */
-@media (max-width: 500px) {
+@media (max-width: 600px) {
+  /* Header */
+  header { height: auto; padding: 8px 10px; flex-wrap: wrap; gap: 6px; }
+  header .logo { font-size: 1rem; }
+  header nav { width: 100%; justify-content: center; flex-wrap: wrap; gap: 2px; }
+  header nav button { padding: 5px 8px; font-size: 0.72rem; border-radius: 6px; }
+  header .btn-sair { padding: 5px 8px !important; font-size: 0.72rem !important; }
+
+  /* Tela */
+  .tela { padding: 16px 10px; }
+
+  /* Stats */
   .stats-grid { gap: 8px; }
-  .stat-numero { font-size: 1.4rem; }
-  header .logo span { display: none; }
-  .jogo-card { padding: 14px; }
-  .placar-numero { font-size: 1.4rem; }
-  .time-bandeira { font-size: 1.5rem; }
-  header nav button { padding: 6px 8px; font-size: 0.78rem; }
+  .stat-numero { font-size: 1.3rem; }
+
+  /* Jogos */
+  .jogo-card { padding: 12px; }
+  .placar-numero { font-size: 1.3rem; }
+  .time-bandeira { font-size: 1.4rem; }
+  .time-nome { font-size: 0.75rem; }
+
+  /* Filtros */
   .filtros-label { min-width: 70px; font-size: 0.65rem; }
+  .filtro-btn { padding: 4px 10px; font-size: 0.75rem; }
+
+  /* Tabela grupos — esconde GP e GC no mobile */
+  .grupo-tabela .col-gp,
+  .grupo-tabela .col-gc { display: none; }
+  .grupo-tabela th:nth-child(7),
+  .grupo-tabela th:nth-child(8),
+  .grupo-tabela td:nth-child(7),
+  .grupo-tabela td:nth-child(8) { display: none; }
+  .grupo-tabela { font-size: 0.78rem; }
+  .grupo-tabela td, .grupo-tabela th { padding: 6px 5px; }
+  .time-cell img { width: 20px; height: 15px; }
+  .time-cell span { font-size: 0.75rem; }
 }
