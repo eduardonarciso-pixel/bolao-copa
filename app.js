@@ -309,7 +309,70 @@ async function carregarAdmin() {
   if (!usuarioAtual || usuarioAtual.uid !== ADMIN_UID) {
     document.getElementById('tela-admin').innerHTML = '<div class="empty-state"><div class="icone">🔒</div><p>Acesso restrito.</p></div>'; return;
   }
+
+  // Abas do admin
+  document.getElementById('tela-admin').innerHTML = `
+    <h2 class="secao-titulo">⚙️ Painel Admin</h2>
+    <div class="filtros" style="margin-bottom:20px">
+      <button class="filtro-btn ativo" onclick="mostrarAbaAdmin('jogos', this)">⚽ Jogos</button>
+      <button class="filtro-btn" onclick="mostrarAbaAdmin('participantes', this)">👥 Participantes</button>
+    </div>
+    <div id="aba-jogos">
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h3>➕ Adicionar Jogo</h3>
+          <form id="form-novo-jogo" onsubmit="adicionarJogo(event)">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="form-grupo"><label>Bandeira Time 1 (emoji)</label><input type="text" id="novo-flag1" placeholder="🇧🇷" maxlength="4"></div>
+              <div class="form-grupo"><label>Bandeira Time 2 (emoji)</label><input type="text" id="novo-flag2" placeholder="🇦🇷" maxlength="4"></div>
+              <div class="form-grupo"><label>Time 1 *</label><input type="text" id="novo-time1" placeholder="Brasil" required></div>
+              <div class="form-grupo"><label>Time 2 *</label><input type="text" id="novo-time2" placeholder="Argentina" required></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div class="form-grupo"><label>Data e Hora *</label><input type="datetime-local" id="novo-data" required></div>
+              <div class="form-grupo"><label>Fase</label>
+                <select id="novo-fase">
+                  <option value="Fase de Grupos">Fase de Grupos</option>
+                  <option value="Oitavas de Final">Oitavas de Final</option>
+                  <option value="Quartas de Final">Quartas de Final</option>
+                  <option value="Semifinal">Semifinal</option>
+                  <option value="3º Lugar">3º Lugar</option>
+                  <option value="Final">Final</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:auto;padding:10px 24px;">➕ Adicionar Jogo</button>
+          </form>
+        </div>
+        <div class="admin-card">
+          <h3>📋 Jogos Cadastrados</h3>
+          <p style="font-size:0.82rem;color:rgba(255,255,255,0.45);margin-bottom:12px;">💾 Salva resultado &nbsp;|&nbsp; 🔒 Encerra &nbsp;|&nbsp; 🔓 Reabre</p>
+          <div id="lista-admin-jogos"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="aba-participantes" style="display:none">
+      <div class="admin-card">
+        <h3>👥 Participantes Cadastrados</h3>
+        <div id="lista-participantes"><div class="loading"><div class="spinner"></div> Carregando...</div></div>
+      </div>
+    </div>
+  `;
+
+  carregarJogosAdmin();
+}
+
+function mostrarAbaAdmin(aba, btn) {
+  document.getElementById('aba-jogos').style.display = aba === 'jogos' ? 'block' : 'none';
+  document.getElementById('aba-participantes').style.display = aba === 'participantes' ? 'block' : 'none';
+  document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  if (aba === 'participantes') carregarParticipantes();
+}
+
+async function carregarJogosAdmin() {
   const lista = document.getElementById('lista-admin-jogos');
+  if (!lista) return;
   lista.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
   try {
     const snap = await db.collection('jogos').orderBy('data').get();
@@ -332,6 +395,96 @@ async function carregarAdmin() {
   } catch (e) { lista.innerHTML = '<p>Erro ao carregar.</p>'; }
 }
 
+async function carregarParticipantes() {
+  const lista = document.getElementById('lista-participantes');
+  lista.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+  try {
+    const snap = await db.collection('usuarios').orderBy('criadoEm').get();
+    const usuarios = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    if (usuarios.length === 0) {
+      lista.innerHTML = '<div class="empty-state"><div class="icone">👥</div><p>Nenhum participante ainda.</p></div>';
+      return;
+    }
+
+    const pagos = usuarios.filter(u => u.pago).length;
+    const nPagos = usuarios.filter(u => !u.pago).length;
+
+    lista.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="stat-numero">${usuarios.length}</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-numero" style="color:#00c853">${pagos}</div>
+          <div class="stat-label">Pagos ✅</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-numero" style="color:#e53935">${nPagos}</div>
+          <div class="stat-label">Pendentes ⏳</div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;font-size:0.82rem;color:rgba(255,255,255,0.45);">
+        ✅ Confirmar pagamento &nbsp;|&nbsp; 🗑️ Excluir participante
+      </div>
+      ${usuarios.map(u => `
+        <div class="admin-jogo-item" style="border-left:4px solid ${u.pago ? '#00c853' : '#e53935'}">
+          <div class="admin-jogo-info">
+            <strong>${u.nome || 'Sem nome'} ${u.uid === ADMIN_UID ? '👑 Admin' : ''}</strong>
+            <span>${u.email}</span>
+            <span style="margin-top:2px;display:block">
+              ${u.pago
+                ? `<span style="color:#00c853;font-weight:700">✅ Pagamento confirmado</span>`
+                : `<span style="color:#e53935;font-weight:700">⏳ Pagamento pendente</span>`
+              }
+              ${u.criadoEm ? '· Cadastro: ' + formatarData(u.criadoEm) : ''}
+            </span>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            ${!u.pago && u.uid !== ADMIN_UID
+              ? `<button class="btn btn-sm" style="background:#00c853;color:#fff" onclick="confirmarPagamento('${u.id}')">✅ Confirmar</button>`
+              : u.uid !== ADMIN_UID
+              ? `<button class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);cursor:default">✅ Pago</button>`
+              : ''
+            }
+            ${u.uid !== ADMIN_UID
+              ? `<button class="btn btn-perigo btn-sm" onclick="excluirParticipante('${u.id}', '${u.nome || u.email}')">🗑️</button>`
+              : ''
+            }
+          </div>
+        </div>
+      `).join('')}
+    `;
+  } catch (e) {
+    lista.innerHTML = '<div class="empty-state"><p>Erro ao carregar participantes.</p></div>';
+    console.error(e);
+  }
+}
+
+async function confirmarPagamento(uid) {
+  try {
+    await db.collection('usuarios').doc(uid).update({ pago: true });
+    mostrarToast('Pagamento confirmado! ✅', 'sucesso');
+    carregarParticipantes();
+  } catch (e) { mostrarToast('Erro ao confirmar pagamento.', 'erro'); }
+}
+
+async function excluirParticipante(uid, nome) {
+  if (!confirm(`Excluir o participante "${nome}"?\n\nIsso removerá o cadastro e todos os palpites dele.`)) return;
+  try {
+    // Excluir palpites do usuário
+    const palpitesSnap = await db.collection('palpites').where('uid', '==', uid).get();
+    const batch = db.batch();
+    palpitesSnap.forEach(d => batch.delete(d.ref));
+    // Excluir usuário
+    batch.delete(db.collection('usuarios').doc(uid));
+    await batch.commit();
+    mostrarToast('Participante excluído! 🗑️', 'sucesso');
+    carregarParticipantes();
+  } catch (e) { mostrarToast('Erro ao excluir participante.', 'erro'); }
+}
+
 async function adicionarJogo(e) {
   e.preventDefault();
   const time1 = document.getElementById('novo-time1').value.trim();
@@ -350,7 +503,7 @@ async function adicionarJogo(e) {
     });
     document.getElementById('form-novo-jogo').reset();
     mostrarToast('Jogo adicionado! ✅', 'sucesso');
-    carregarAdmin();
+    carregarJogosAdmin();
   } catch (e) { mostrarToast('Erro ao adicionar.', 'erro'); }
 }
 
@@ -372,7 +525,7 @@ async function encerrarJogo(jogoId) {
   try {
     await db.collection('jogos').doc(jogoId).update({ encerrado: true, resultado: { gols1: parseInt(g1), gols2: parseInt(g2) } });
     mostrarToast('Jogo encerrado! 🔒', 'sucesso');
-    carregarAdmin();
+    carregarJogosAdmin();
   } catch (e) { mostrarToast('Erro.', 'erro'); }
 }
 
@@ -381,6 +534,6 @@ async function reabrirJogo(jogoId) {
   try {
     await db.collection('jogos').doc(jogoId).update({ encerrado: false });
     mostrarToast('Jogo reaberto! 🔓', 'sucesso');
-    carregarAdmin();
+    carregarJogosAdmin();
   } catch (e) { mostrarToast('Erro.', 'erro'); }
 }
