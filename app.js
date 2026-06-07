@@ -2,6 +2,11 @@
 // BOLÃO DA COPA — app.js
 // =============================
 
+// ---- EmailJS ----
+const EMAILJS_SERVICE  = 'service_07czpxj';
+const EMAILJS_TEMPLATE = 'template_hovphbr';
+const EMAILJS_KEY      = 'WvWiIeYpql7fScPnkanuk';
+
 // ---- Inicialização Firebase ----
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -813,6 +818,51 @@ async function carregarParticipantes() {
     `;
   } catch (e) {
     container.innerHTML = '<p style="color:red">Erro ao carregar participantes.</p>';
+  }
+}
+
+async function enviarLembretes() {
+  try {
+    const snap = await db.collection('usuarios').get();
+    const pendentes = snap.docs
+      .map(d => ({ uid: d.id, ...d.data() }))
+      .filter(u => !u.pago && u.email);
+
+    if (pendentes.length === 0) {
+      mostrarToast('Nenhum pendente encontrado! ✅', 'sucesso');
+      return;
+    }
+
+    if (!confirm(`Enviar lembrete para ${pendentes.length} participante(s) pendente(s)?`)) return;
+
+    emailjs.init(EMAILJS_KEY);
+
+    let enviados = 0;
+    let erros = 0;
+
+    for (const u of pendentes) {
+      try {
+        await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+          nome: u.nome || u.email.split('@')[0],
+          email: u.email,
+          to_email: u.email,
+          to_name: u.nome || u.email.split('@')[0],
+        });
+        enviados++;
+        console.log(`✅ Email enviado para ${u.email}`);
+      } catch(e) {
+        erros++;
+        console.error(`❌ Erro ao enviar para ${u.email}:`, e);
+      }
+    }
+
+    if (erros === 0) {
+      mostrarToast(`📧 ${enviados} lembrete(s) enviado(s)!`, 'sucesso');
+    } else {
+      mostrarToast(`📧 ${enviados} enviado(s), ${erros} erro(s).`, '');
+    }
+  } catch(e) {
+    mostrarToast('Erro ao buscar participantes.', 'erro');
   }
 }
 

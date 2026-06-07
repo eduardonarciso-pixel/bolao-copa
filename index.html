@@ -9,6 +9,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <!-- EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -250,10 +252,14 @@
       <!-- Participantes -->
       <div class="admin-card">
         <h3>👥 Participantes</h3>
-        <p style="font-size:0.82rem; color:rgba(255,255,255,0.5); margin-bottom:12px;">
-          ✅ Confirmar pagamento &nbsp;|&nbsp;
-          🗑️ Excluir participante
-        </p>
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:12px;">
+          <p style="font-size:0.82rem; color:rgba(255,255,255,0.5); margin:0;">
+            ✅ Confirmar &nbsp;|&nbsp; ✏️ Editar nome &nbsp;|&nbsp; 🗑️ Excluir
+          </p>
+          <button class="btn btn-sm" style="background:rgba(46,204,113,0.2);color:#2ecc71;border:1px solid rgba(46,204,113,0.3);" onclick="enviarLembretes()">
+            📧 Lembrar Pendentes
+          </button>
+        </div>
         <div id="lista-participantes">
           <div class="loading"><div class="spinner"></div> Carregando...</div>
         </div>
