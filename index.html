@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <!-- EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/emailjs-com@2/dist/email.min.js"></script>
 </head>
 <body>
 
@@ -77,6 +77,7 @@
       <button data-tela="tela-ranking" onclick="mostrarTela('tela-ranking')">🏆 Ranking</button>
       <button data-tela="tela-premiacao" onclick="mostrarTela('tela-premiacao')">💰 Prêmios</button>
       <button data-tela="tela-grupos" onclick="mostrarTela('tela-grupos')">📊 Grupos</button>
+      <button data-tela="tela-regras" onclick="mostrarTela('tela-regras')">📋 Regras</button>
       <button data-tela="tela-perfil" onclick="mostrarTela('tela-perfil')">👤 Perfil</button>
       <button id="btn-admin" data-tela="tela-admin" onclick="mostrarTela('tela-admin')" style="display:none">
         ⚙️ Admin
@@ -143,6 +144,61 @@
       <div id="tabela-ranking">
         <div class="loading"><div class="spinner"></div> Carregando...</div>
       </div>
+    </div>
+  </div>
+
+  <!-- TELA: REGRAS -->
+  <div id="tela-regras" class="tela">
+    <h2 class="secao-titulo">📋 Regras do Bolão</h2>
+
+    <div class="regras-card">
+      <h3>⚽ Como Funciona</h3>
+      <ul>
+        <li>Cada participante faz seus palpites para os jogos da Copa do Mundo 2026.</li>
+        <li>Os palpites devem ser enviados <strong>antes do início de cada jogo</strong>.</li>
+        <li>Após o início do jogo, não é possível alterar ou enviar palpites.</li>
+      </ul>
+    </div>
+
+    <div class="regras-card">
+      <h3>🏆 Pontuação</h3>
+      <ul>
+        <li>⭐ <strong>10 pontos</strong> — Placar exato (ex: palpitou 2×1 e foi 2×1)</li>
+        <li>✅ <strong>7 pontos</strong> — Acertou o vencedor e a diferença de gols (ex: palpitou 2×0 e foi 3×1)</li>
+        <li>✅ <strong>5 pontos</strong> — Acertou apenas o vencedor (ex: palpitou 2×1 e foi 1×0)</li>
+        <li>❌ <strong>0 pontos</strong> — Errou o resultado</li>
+      </ul>
+    </div>
+
+    <div class="regras-card">
+      <h3>🔢 Critério de Desempate</h3>
+      <ul>
+        <li>1º — Maior número de <strong>placares exatos</strong> (todos os jogos).</li>
+        <li>2º — Maior número de <strong>placares exatos na fase de grupos</strong>.</li>
+        <li>3º — Maior número de <strong>vencedores acertados</strong>.</li>
+      </ul>
+    </div>
+
+    <div class="regras-card">
+      <h3>💰 Participação e Premiação</h3>
+      <ul>
+        <li>Valor da cota: <strong>R$ 50,00</strong> por participante.</li>
+        <li>Máximo de <strong>50 participantes</strong>.</li>
+        <li>🥇 <strong>1º Lugar</strong> — 60% do total arrecadado</li>
+        <li>🥈 <strong>2º Lugar</strong> — 25% do total arrecadado</li>
+        <li>🥉 <strong>3º Lugar</strong> — 10% do total arrecadado</li>
+        <li>⚙️ <strong>Organização</strong> — 5% do total arrecadado</li>
+      </ul>
+    </div>
+
+    <div class="regras-card">
+      <h3>📌 Observações</h3>
+      <ul>
+        <li>O pagamento deve ser realizado via <strong>Pix</strong> para confirmar a participação.</li>
+        <li>Participantes com pagamento pendente poderão ser removidos do bolão.</li>
+        <li>Os resultados são lançados pelo administrador após cada jogo.</li>
+        <li>O ranking é atualizado automaticamente após cada resultado.</li>
+      </ul>
     </div>
   </div>
 
