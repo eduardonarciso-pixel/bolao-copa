@@ -6,6 +6,7 @@
 const EMAILJS_SERVICE  = 'service_07czpxj';
 const EMAILJS_TEMPLATE = 'template_hovphbr';
 const EMAILJS_KEY      = 'WvWiIeYpql7fScPnkanuk';
+emailjs.init(EMAILJS_KEY);
 
 // ---- Inicialização Firebase ----
 firebase.initializeApp(firebaseConfig);
@@ -835,8 +836,6 @@ async function enviarLembretes() {
 
     if (!confirm(`Enviar lembrete para ${pendentes.length} participante(s) pendente(s)?`)) return;
 
-    emailjs.init(EMAILJS_KEY);
-
     let enviados = 0;
     let erros = 0;
 
@@ -844,9 +843,11 @@ async function enviarLembretes() {
       try {
         await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
           nome: u.nome || u.email.split('@')[0],
-          email: u.email,
+          name: u.nome || u.email.split('@')[0],
           to_email: u.email,
           to_name: u.nome || u.email.split('@')[0],
+          email: u.email,
+          user_email: u.email,
         });
         enviados++;
         console.log(`✅ Email enviado para ${u.email}`);
