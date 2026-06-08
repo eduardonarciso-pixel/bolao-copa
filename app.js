@@ -5,8 +5,8 @@
 // ---- EmailJS ----
 const EMAILJS_SERVICE  = 'service_07czpxj';
 const EMAILJS_TEMPLATE = 'template_hovphbr';
-const EMAILJS_KEY      = 'WvWiIeYpql7fScPnkanuk';
-emailjs.init({ publicKey: EMAILJS_KEY });
+const EMAILJS_KEY      = 'HLRdk2QTNVbB4NoBm';
+emailjs.init(EMAILJS_KEY);
 
 // ---- Inicialização Firebase ----
 firebase.initializeApp(firebaseConfig);
@@ -847,7 +847,6 @@ async function enviarLembretes() {
           to_email: u.email,
           to_name: u.nome || u.email.split('@')[0],
           email: u.email,
-          user_email: u.email,
         });
         enviados++;
         console.log(`✅ Email enviado para ${u.email}`);
