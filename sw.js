@@ -1,4 +1,4 @@
-const CACHE = 'bolao-copa-v1';
+const CACHE = 'bolao-copa-v3';
 const ARQUIVOS = [
   '/bolao-copa/',
   '/bolao-copa/index.html',
