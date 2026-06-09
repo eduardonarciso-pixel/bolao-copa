@@ -6,7 +6,7 @@
 const EMAILJS_SERVICE  = 'service_07czpxj';
 const EMAILJS_TEMPLATE = 'template_hovphbr';
 const EMAILJS_KEY      = 'HLRdk2QTNVbB4NoBm';
-emailjs.init(EMAILJS_KEY);
+emailjs.init({ publicKey: EMAILJS_KEY });
 
 // ---- Inicialização Firebase ----
 firebase.initializeApp(firebaseConfig);
