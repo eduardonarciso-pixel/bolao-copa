@@ -662,19 +662,43 @@ async function carregarAdmin() {
   carregarParticipantes();
 
   try {
-    const snap = await db.collection('jogos').orderBy('data').get();
-    const jogos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const [jogosSnap, palpitesSnap, usuariosSnap] = await Promise.all([
+      db.collection('jogos').orderBy('data').get(),
+      db.collection('palpites').get(),
+      db.collection('usuarios').get()
+    ]);
+
+    const jogos = jogosSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const totalParticipantes = usuariosSnap.size;
+
+    // Mapear palpites por jogoId → lista de nomes
+    const nomesPorUid = {};
+    usuariosSnap.forEach(d => { nomesPorUid[d.id] = d.data().nome || d.data().email; });
+
+    const palpitesPorJogo = {};
+    palpitesSnap.forEach(d => {
+      const p = d.data();
+      if (!palpitesPorJogo[p.jogoId]) palpitesPorJogo[p.jogoId] = [];
+      palpitesPorJogo[p.jogoId].push(nomesPorUid[p.uid] || p.uid);
+    });
 
     if (jogos.length === 0) {
       listaAdmin.innerHTML = '<div class="empty-state"><div class="icone">📋</div><p>Nenhum jogo cadastrado ainda.</p></div>';
       return;
     }
 
-    listaAdmin.innerHTML = jogos.map(j => `
+    listaAdmin.innerHTML = jogos.map(j => {
+      const nomes = palpitesPorJogo[j.id] || [];
+      const count = nomes.length;
+      const tooltip = nomes.length > 0 ? nomes.join(', ') : 'Nenhum palpite ainda';
+      return `
       <div class="admin-jogo-item">
         <div class="admin-jogo-info">
           <strong>${j.bandeira1 || ''} ${j.time1} × ${j.time2} ${j.bandeira2 || ''}</strong>
           <span>${formatarData(j.data)} · ${j.fase || 'Grupos'} ${j.encerrado ? '· ✅ Encerrado' : ''}</span>
+          <span class="palpites-counter" title="${tooltip}">
+            👥 ${count}/${totalParticipantes} palpites
+          </span>
         </div>
         <div class="resultado-inputs">
           <input type="number" min="0" class="resultado-input" id="r1-${j.id}"
@@ -689,7 +713,7 @@ async function carregarAdmin() {
           }
         </div>
       </div>
-    `).join('');
+    `}).join('');
   } catch (e) {
     listaAdmin.innerHTML = '<p>Erro ao carregar jogos.</p>';
   }

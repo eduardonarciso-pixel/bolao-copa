@@ -537,6 +537,16 @@ header .btn-sair {
 .admin-jogo-info { flex: 1; min-width: 150px; }
 .admin-jogo-info strong { display: block; font-size: 0.88rem; color: #fff; }
 .admin-jogo-info span { font-size: 0.75rem; color: rgba(255,255,255,0.5); }
+.palpites-counter {
+  font-size: 0.75rem;
+  color: var(--verde);
+  font-weight: 600;
+  cursor: help;
+  border-bottom: 1px dashed rgba(46,204,113,0.4);
+  display: inline-block;
+  margin-top: 2px;
+}
+
 .resultado-inputs { display: flex; align-items: center; gap: 6px; }
 .resultado-input {
   width: 44px;
