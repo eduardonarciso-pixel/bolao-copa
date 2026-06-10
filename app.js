@@ -810,7 +810,7 @@ async function carregarParticipantes() {
   container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
 
   try {
-    const snap = await db.collection('usuarios').get();
+    const snap = await db.collection('usuarios').get({ source: 'server' });
     const usuarios = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
 
     if (usuarios.length === 0) {
