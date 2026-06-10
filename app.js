@@ -818,10 +818,12 @@ async function carregarParticipantes() {
       return;
     }
 
+    usuarios.sort((a, b) => (a.nome || a.email).localeCompare(b.nome || b.email, 'pt-BR'));
     const pagos = usuarios.filter(u => u.pago).length;
     container.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
         <span style="font-size:0.85rem;color:#666;">${usuarios.length} participante(s) · <strong style="color:#27ae60">${pagos} pago(s)</strong> · <strong style="color:#e74c3c">${usuarios.length - pagos} pendente(s)</strong></span>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="carregarParticipantes()">🔄 Atualizar</button>
       </div>
       ${usuarios.map(u => `
         <div class="admin-jogo-item" style="align-items:center;">
