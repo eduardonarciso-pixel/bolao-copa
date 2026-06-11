@@ -240,6 +240,8 @@ function renderizarJogos(jogos, palpitesMap) {
     const palpite = palpitesMap[jogo.id];
     const pontos = palpite && jogo.resultado ? calcularPontos(palpite, jogo.resultado) : null;
     const encerrado = jogo.encerrado;
+    const jogoIniciou = jogo.data && (jogo.data.toDate ? jogo.data.toDate() : new Date(jogo.data)) <= new Date();
+    const bloqueado = encerrado || jogoIniciou;
 
     const classeCard = encerrado
       ? (pontos === 10 ? 'acerto-exato' : pontos > 0 ? 'acerto-parcial' : 'encerrado')
@@ -276,22 +278,23 @@ function renderizarJogos(jogos, palpitesMap) {
 
       <div class="palpite-area">
         <div class="palpite-label">
-          ${encerrado ? '✓ Palpite enviado' : '⚽ Seu palpite'}
+          ${bloqueado ? '✓ Palpite enviado' : '⚽ Seu palpite'}
           ${encerrado ? getBadgePontos(pontos) : ''}
+          ${jogoIniciou && !encerrado ? '<span class="resultado-badge badge-aguarda">🔒 Em andamento</span>' : ''}
         </div>
         <div class="palpite-inputs">
           <input type="number" min="0" max="99" class="palpite-input"
             id="p1-${jogo.id}"
             value="${palpite ? palpite.gols1 : ''}"
-            ${encerrado ? 'disabled' : ''}
+            ${bloqueado ? 'disabled' : ''}
             placeholder="0">
           <span class="placar-x">×</span>
           <input type="number" min="0" max="99" class="palpite-input"
             id="p2-${jogo.id}"
             value="${palpite ? palpite.gols2 : ''}"
-            ${encerrado ? 'disabled' : ''}
+            ${bloqueado ? 'disabled' : ''}
             placeholder="0">
-          ${!encerrado ? `
+          ${!bloqueado ? `
             <button class="btn-palpite" onclick="salvarPalpite('${jogo.id}')">
               ${palpite ? '✏️ Atualizar' : '✅ Salvar'}
             </button>
@@ -303,6 +306,15 @@ function renderizarJogos(jogos, palpitesMap) {
 }
 
 async function salvarPalpite(jogoId) {
+  const jogo = jogosCache.find(j => j.id === jogoId);
+  if (jogo) {
+    const jogoIniciou = jogo.data && (jogo.data.toDate ? jogo.data.toDate() : new Date(jogo.data)) <= new Date();
+    if (jogo.encerrado || jogoIniciou) {
+      mostrarToast('Jogo já iniciado! Palpites encerrados. 🔒', 'erro');
+      return;
+    }
+  }
+
   const g1 = document.getElementById(`p1-${jogoId}`).value;
   const g2 = document.getElementById(`p2-${jogoId}`).value;
 
