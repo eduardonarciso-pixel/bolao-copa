@@ -554,10 +554,14 @@ async function carregarRanking() {
 
     const pontosPorUsuario = {};
     const acertosPorUsuario = {};
-    const palpitesPorUsuario = {};
+    const palpitesFeitosPorUsuario = {};  // todos os palpites feitos
+    const palpitesEncerradosPorUsuario = {}; // só jogos com resultado
 
     palpitesSnap.forEach(d => {
       const p = d.data();
+      // Contar todos os palpites feitos
+      palpitesFeitosPorUsuario[p.uid] = (palpitesFeitosPorUsuario[p.uid] || 0) + 1;
+
       const jogo = jogos[p.jogoId];
       if (!jogo || !jogo.resultado) return;
 
@@ -565,10 +569,10 @@ async function carregarRanking() {
       if (!pontosPorUsuario[p.uid]) {
         pontosPorUsuario[p.uid] = 0;
         acertosPorUsuario[p.uid] = 0;
-        palpitesPorUsuario[p.uid] = 0;
+        palpitesEncerradosPorUsuario[p.uid] = 0;
       }
       pontosPorUsuario[p.uid] += pts;
-      palpitesPorUsuario[p.uid]++;
+      palpitesEncerradosPorUsuario[p.uid]++;
       if (pts > 0) acertosPorUsuario[p.uid]++;
     });
 
@@ -579,7 +583,7 @@ async function carregarRanking() {
         ...d.data(),
         pontos: pontosPorUsuario[d.id] || 0,
         acertos: acertosPorUsuario[d.id] || 0,
-        totalPalpites: palpitesPorUsuario[d.id] || 0
+        totalPalpites: palpitesFeitosPorUsuario[d.id] || 0
       });
     });
 
