@@ -554,26 +554,17 @@ async function carregarRanking() {
 
     const pontosPorUsuario = {};
     const acertosPorUsuario = {};
-    const palpitesFeitosPorUsuario = {};  // todos os palpites feitos
-    const palpitesEncerradosPorUsuario = {}; // só jogos com resultado
+    const palpitesEncerradosPorUsuario = {};
 
     palpitesSnap.forEach(d => {
       const p = d.data();
-      // Contar todos os palpites feitos
-      palpitesFeitosPorUsuario[p.uid] = (palpitesFeitosPorUsuario[p.uid] || 0) + 1;
-
       const jogo = jogos[p.jogoId];
       if (!jogo || !jogo.resultado) return;
 
       const pts = calcularPontos(p, jogo.resultado);
-      if (!pontosPorUsuario[p.uid]) {
-        pontosPorUsuario[p.uid] = 0;
-        acertosPorUsuario[p.uid] = 0;
-        palpitesEncerradosPorUsuario[p.uid] = 0;
-      }
-      pontosPorUsuario[p.uid] += pts;
-      palpitesEncerradosPorUsuario[p.uid]++;
-      if (pts > 0) acertosPorUsuario[p.uid]++;
+      pontosPorUsuario[p.uid]         = (pontosPorUsuario[p.uid]         || 0) + pts;
+      palpitesEncerradosPorUsuario[p.uid] = (palpitesEncerradosPorUsuario[p.uid] || 0) + 1;
+      if (pts > 0) acertosPorUsuario[p.uid] = (acertosPorUsuario[p.uid] || 0) + 1;
     });
 
     const usuarios = [];
