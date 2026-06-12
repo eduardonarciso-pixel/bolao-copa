@@ -702,7 +702,9 @@ async function carregarAdmin() {
       <div class="admin-jogo-item">
         <div class="admin-jogo-info">
           <strong>${j.bandeira1 || ''} ${j.time1} × ${j.time2} ${j.bandeira2 || ''}</strong>
-          <span>${formatarData(j.data)} · ${j.fase || 'Grupos'} ${j.encerrado ? '· ✅ Encerrado' : ''}</span>
+          <span>${formatarData(j.data)} · ${j.fase || 'Grupos'} ${j.encerrado ? '· ✅ Encerrado' : ''}
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;padding:2px 7px;font-size:0.75rem;" onclick="editarJogo('${j.id}', '${j.time1}', '${j.time2}', '${j.fase || ''}', ${j.data ? j.data.toDate ? j.data.toDate().getTime() : new Date(j.data).getTime() : 0})">✏️</button>
+          </span>
           <span class="palpites-counter" title="${tooltip}">
             👥 ${count}/${totalParticipantes} palpites
           </span>
@@ -723,6 +725,30 @@ async function carregarAdmin() {
     `}).join('');
   } catch (e) {
     listaAdmin.innerHTML = '<p>Erro ao carregar jogos.</p>';
+  }
+}
+
+async function editarJogo(jogoId, time1, time2, fase, timestamp) {
+  const dataAtual = new Date(timestamp);
+  // Formatar para datetime-local input: YYYY-MM-DDTHH:MM
+  const pad = n => String(n).padStart(2, '0');
+  const dataFormatada = `${dataAtual.getFullYear()}-${pad(dataAtual.getMonth()+1)}-${pad(dataAtual.getDate())}T${pad(dataAtual.getHours())}:${pad(dataAtual.getMinutes())}`;
+
+  const novaData = prompt(`Editar data/hora de ${time1} × ${time2}:\n(formato: AAAA-MM-DDTHH:MM)`, dataFormatada);
+  if (!novaData) return;
+
+  const novaFase = prompt('Fase do jogo:', fase);
+  if (novaFase === null) return;
+
+  try {
+    await db.collection('jogos').doc(jogoId).update({
+      data: firebase.firestore.Timestamp.fromDate(new Date(novaData)),
+      fase: novaFase.trim()
+    });
+    mostrarToast('Jogo atualizado! ✅', 'sucesso');
+    carregarAdmin();
+  } catch (e) {
+    mostrarToast('Erro ao atualizar jogo.', 'erro');
   }
 }
 
