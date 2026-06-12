@@ -583,7 +583,7 @@ async function carregarRanking() {
         ...d.data(),
         pontos: pontosPorUsuario[d.id] || 0,
         acertos: acertosPorUsuario[d.id] || 0,
-        totalPalpites: palpitesFeitosPorUsuario[d.id] || 0
+        totalPalpites: palpitesEncerradosPorUsuario[d.id] || 0
       });
     });
 
