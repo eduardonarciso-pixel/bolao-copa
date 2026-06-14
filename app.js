@@ -699,32 +699,110 @@ async function carregarAdmin() {
       const count = nomes.length;
       const tooltip = nomes.length > 0 ? nomes.join(', ') : 'Nenhum palpite ainda';
       return `
-      <div class="admin-jogo-item">
-        <div class="admin-jogo-info">
-          <strong>${j.bandeira1 || ''} ${j.time1} × ${j.time2} ${j.bandeira2 || ''}</strong>
-          <span>${formatarData(j.data)} · ${j.fase || 'Grupos'} ${j.encerrado ? '· ✅ Encerrado' : ''}
-            <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;padding:2px 7px;font-size:0.75rem;" onclick="editarJogo('${j.id}', '${j.time1}', '${j.time2}', '${j.fase || ''}', ${j.data ? j.data.toDate ? j.data.toDate().getTime() : new Date(j.data).getTime() : 0})">✏️</button>
-          </span>
-          <span class="palpites-counter" title="${tooltip}">
-            👥 ${count}/${totalParticipantes} palpites
-          </span>
+      <div class="admin-jogo-item" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
+          <div class="admin-jogo-info">
+            <strong>${j.bandeira1 || ''} ${j.time1} × ${j.time2} ${j.bandeira2 || ''}</strong>
+            <span>${formatarData(j.data)} · ${j.fase || 'Grupos'} ${j.encerrado ? '· ✅ Encerrado' : ''}
+              <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:#fff;padding:2px 7px;font-size:0.75rem;" onclick="editarJogo('${j.id}', '${j.time1}', '${j.time2}', '${j.fase || ''}', ${j.data ? j.data.toDate ? j.data.toDate().getTime() : new Date(j.data).getTime() : 0})">✏️</button>
+            </span>
+            <span class="palpites-counter" title="${tooltip}" style="cursor:pointer;" onclick="verPalpitesJogo('${j.id}', '${j.time1}', '${j.time2}')">
+              👥 ${count}/${totalParticipantes} palpites ${j.encerrado ? '· 👁️ Ver' : ''}
+            </span>
+          </div>
+          <div class="resultado-inputs">
+            <input type="number" min="0" class="resultado-input" id="r1-${j.id}"
+              value="${j.resultado ? j.resultado.gols1 : ''}" placeholder="0">
+            <span style="font-weight:700">×</span>
+            <input type="number" min="0" class="resultado-input" id="r2-${j.id}"
+              value="${j.resultado ? j.resultado.gols2 : ''}" placeholder="0">
+            <button class="btn btn-amarelo btn-sm" onclick="salvarResultado('${j.id}')">💾</button>
+            ${!j.encerrado
+              ? `<button class="btn btn-perigo btn-sm" onclick="encerrarJogo('${j.id}')">🔒</button>`
+              : `<button class="btn btn-sm" style="background:#27ae60;color:#fff" onclick="reabrirJogo('${j.id}')">🔓</button>`
+            }
+          </div>
         </div>
-        <div class="resultado-inputs">
-          <input type="number" min="0" class="resultado-input" id="r1-${j.id}"
-            value="${j.resultado ? j.resultado.gols1 : ''}" placeholder="0">
-          <span style="font-weight:700">×</span>
-          <input type="number" min="0" class="resultado-input" id="r2-${j.id}"
-            value="${j.resultado ? j.resultado.gols2 : ''}" placeholder="0">
-          <button class="btn btn-amarelo btn-sm" onclick="salvarResultado('${j.id}')">💾</button>
-          ${!j.encerrado
-            ? `<button class="btn btn-perigo btn-sm" onclick="encerrarJogo('${j.id}')">🔒</button>`
-            : `<button class="btn btn-sm" style="background:#27ae60;color:#fff" onclick="reabrirJogo('${j.id}')">🔓</button>`
-          }
-        </div>
+        <div id="palpites-jogo-${j.id}" style="display:none;margin-top:10px;"></div>
       </div>
     `}).join('');
   } catch (e) {
     listaAdmin.innerHTML = '<p>Erro ao carregar jogos.</p>';
+  }
+}
+
+async function verPalpitesJogo(jogoId, time1, time2) {
+  const container = document.getElementById(`palpites-jogo-${jogoId}`);
+  if (!container) return;
+
+  // Toggle: se já está aberto, fecha
+  if (container.style.display !== 'none') {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+  container.innerHTML = '<div class="loading"><div class="spinner"></div> Carregando...</div>';
+
+  try {
+    const [jogoDoc, palpitesSnap, usuariosSnap] = await Promise.all([
+      db.collection('jogos').doc(jogoId).get(),
+      db.collection('palpites').where('jogoId', '==', jogoId).get(),
+      db.collection('usuarios').get()
+    ]);
+
+    const jogo = jogoDoc.data();
+    const resultado = jogo.resultado;
+
+    const nomesPorUid = {};
+    usuariosSnap.forEach(d => { nomesPorUid[d.id] = d.data().nome || d.data().email; });
+
+    const palpites = palpitesSnap.docs.map(d => ({ uid: d.data().uid, ...d.data() }));
+    palpites.sort((a, b) => {
+      const pa = calcularPontos(a, resultado) || 0;
+      const pb = calcularPontos(b, resultado) || 0;
+      return pb - pa;
+    });
+
+    // Participantes sem palpite
+    const comPalpite = new Set(palpites.map(p => p.uid));
+    const semPalpite = usuariosSnap.docs.filter(d => !comPalpite.has(d.id));
+
+    container.innerHTML = `
+      <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;margin-top:4px;">
+        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-bottom:8px;">
+          Resultado: <strong>${resultado ? `${resultado.gols1} × ${resultado.gols2}` : '—'}</strong>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+          <thead>
+            <tr style="color:rgba(255,255,255,0.5);text-align:left;">
+              <th style="padding:4px 8px;">Participante</th>
+              <th style="padding:4px 8px;text-align:center;">Palpite</th>
+              <th style="padding:4px 8px;text-align:center;">Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${palpites.map(p => {
+              const pts = calcularPontos(p, resultado);
+              const cor = pts === 10 ? '#2ecc71' : pts >= 5 ? '#f39c12' : pts === 0 ? '#e74c3c' : '#aaa';
+              return `<tr style="border-top:1px solid rgba(255,255,255,0.07);">
+                <td style="padding:5px 8px;">${nomesPorUid[p.uid] || p.uid}</td>
+                <td style="padding:5px 8px;text-align:center;font-weight:700;">${p.gols1} × ${p.gols2}</td>
+                <td style="padding:5px 8px;text-align:center;color:${cor};font-weight:700;">${pts !== null ? '+' + pts : '—'}</td>
+              </tr>`;
+            }).join('')}
+            ${semPalpite.map(d => `
+              <tr style="border-top:1px solid rgba(255,255,255,0.07);opacity:0.4;">
+                <td style="padding:5px 8px;">${d.data().nome || d.data().email}</td>
+                <td style="padding:5px 8px;text-align:center;">—</td>
+                <td style="padding:5px 8px;text-align:center;">—</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (e) {
+    container.innerHTML = '<p style="color:red;font-size:0.82rem;">Erro ao carregar palpites.</p>';
   }
 }
 
