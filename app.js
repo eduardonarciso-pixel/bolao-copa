@@ -808,18 +808,25 @@ async function verPalpitesJogo(jogoId, time1, time2) {
 
 async function editarJogo(jogoId, time1, time2, fase, timestamp) {
   const dataAtual = new Date(timestamp);
-  // Formatar para datetime-local input: YYYY-MM-DDTHH:MM
   const pad = n => String(n).padStart(2, '0');
   const dataFormatada = `${dataAtual.getFullYear()}-${pad(dataAtual.getMonth()+1)}-${pad(dataAtual.getDate())}T${pad(dataAtual.getHours())}:${pad(dataAtual.getMinutes())}`;
 
-  const novaData = prompt(`Editar data/hora de ${time1} × ${time2}:\n(formato: AAAA-MM-DDTHH:MM)`, dataFormatada);
+  const novoTime1 = prompt(`Time 1:`, time1);
+  if (novoTime1 === null) return;
+
+  const novoTime2 = prompt(`Time 2:`, time2);
+  if (novoTime2 === null) return;
+
+  const novaData = prompt(`Data/hora (AAAA-MM-DDTHH:MM):`, dataFormatada);
   if (!novaData) return;
 
-  const novaFase = prompt('Fase do jogo:', fase);
+  const novaFase = prompt('Fase:', fase);
   if (novaFase === null) return;
 
   try {
     await db.collection('jogos').doc(jogoId).update({
+      time1: novoTime1.trim(),
+      time2: novoTime2.trim(),
       data: firebase.firestore.Timestamp.fromDate(new Date(novaData)),
       fase: novaFase.trim()
     });
