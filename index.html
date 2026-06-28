@@ -78,6 +78,7 @@
       <button data-tela="tela-premiacao" onclick="mostrarTela('tela-premiacao')">💰 Prêmios</button>
       <button data-tela="tela-grupos" onclick="mostrarTela('tela-grupos')">📊 Grupos</button>
       <button data-tela="tela-regras" onclick="mostrarTela('tela-regras')">📋 Regras</button>
+      <button data-tela="tela-especial" onclick="mostrarTela('tela-especial')">🔮 Especial</button>
       <button data-tela="tela-perfil" onclick="mostrarTela('tela-perfil')">👤 Perfil</button>
       <button id="btn-admin" data-tela="tela-admin" onclick="mostrarTela('tela-admin')" style="display:none">
         ⚙️ Admin
@@ -208,6 +209,68 @@
         <li>O ranking é atualizado automaticamente após cada resultado.</li>
       </ul>
     </div>
+  </div>
+
+  <!-- TELA: ESPECIAL -->
+  <div id="tela-especial" class="tela">
+    <h2 class="secao-titulo">🔮 Bora ver quem vai acertar</h2>
+    <p style="color:rgba(255,255,255,0.6);font-size:0.88rem;margin-bottom:16px;">Sem pontuação — só pra ver quem vai cravar! Você pode alterar suas respostas a qualquer momento.</p>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="form-grupo" style="margin-bottom:16px;">
+        <label style="font-weight:700;margin-bottom:8px;display:block;">🏆 Qual time será campeão da Copa?</label>
+        <select id="esp-campeao" style="width:100%;padding:10px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);font-size:0.95rem;">
+          <option value="">— Selecione um time —</option>
+          <option>Argentina</option><option>Alemanha</option><option>Arábia Saudita</option>
+          <option>Argélia</option><option>Austrália</option><option>Áustria</option>
+          <option>Bélgica</option><option>Bósnia</option><option>Brasil</option>
+          <option>Cabo Verde</option><option>Canadá</option><option>Catar</option>
+          <option>Colômbia</option><option>Coreia do Sul</option><option>Costa do Marfim</option>
+          <option>Croácia</option><option>Curaçao</option><option>Egito</option>
+          <option>Equador</option><option>Escócia</option><option>Espanha</option>
+          <option>Estados Unidos</option><option>França</option><option>Gana</option>
+          <option>Haiti</option><option>Holanda</option><option>Inglaterra</option>
+          <option>Irã</option><option>Iraque</option><option>Japão</option>
+          <option>Jordânia</option><option>Marrocos</option><option>México</option>
+          <option>Nova Zelândia</option><option>Noruega</option><option>Panamá</option>
+          <option>Paraguai</option><option>Portugal</option><option>RD Congo</option>
+          <option>República Tcheca</option><option>Senegal</option><option>Suécia</option>
+          <option>Suíça</option><option>Tunísia</option><option>Turquia</option>
+          <option>Uruguai</option><option>Uzbequistão</option><option>África do Sul</option>
+        </select>
+      </div>
+
+      <div class="form-grupo" style="margin-bottom:16px;">
+        <label style="font-weight:700;margin-bottom:8px;display:block;">⚽ Quem será o artilheiro da Copa?</label>
+        <input type="text" id="esp-artilheiro" placeholder="Nome do jogador..." style="width:100%;padding:10px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);font-size:0.95rem;box-sizing:border-box;">
+      </div>
+
+      <div class="form-grupo" style="margin-bottom:20px;">
+        <label style="font-weight:700;margin-bottom:8px;display:block;">🇧🇷 Qual posição o Brasil vai ficar?</label>
+        <select id="esp-brasil" style="width:100%;padding:10px;border-radius:8px;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);font-size:0.95rem;">
+          <option value="">— Selecione a posição —</option>
+          <option>1º lugar (Campeão)</option><option>2º lugar</option><option>3º lugar</option>
+          <option>4º lugar</option><option>5º lugar (Quartas)</option><option>6º lugar (Quartas)</option>
+          <option>7º lugar (Quartas)</option><option>8º lugar (Quartas)</option>
+          <option>9º lugar (Oitavas)</option><option>10º lugar (Oitavas)</option>
+          <option>11º lugar (Oitavas)</option><option>12º lugar (Oitavas)</option>
+          <option>13º lugar (Oitavas)</option><option>14º lugar (Oitavas)</option>
+          <option>15º lugar (Oitavas)</option><option>16º lugar (Oitavas)</option>
+          <option>17º lugar (Grupos)</option><option>18º lugar (Grupos)</option>
+          <option>19º lugar (Grupos)</option><option>20º lugar (Grupos)</option>
+          <option>21º lugar (Grupos)</option><option>22º lugar (Grupos)</option>
+          <option>23º lugar (Grupos)</option><option>24º lugar (Grupos)</option>
+          <option>25º lugar (Grupos)</option><option>26º lugar (Grupos)</option>
+          <option>27º lugar (Grupos)</option><option>28º lugar (Grupos)</option>
+          <option>29º lugar (Grupos)</option><option>30º lugar (Grupos)</option>
+          <option>31º lugar (Grupos)</option><option>32º lugar (Grupos)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" onclick="salvarEspecial()" style="width:100%;">💾 Salvar minhas respostas</button>
+    </div>
+
+    <div id="resumo-especial"></div>
   </div>
 
   <!-- TELA: PREMIAÇÃO -->
