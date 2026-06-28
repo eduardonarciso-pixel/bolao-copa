@@ -99,6 +99,7 @@ function mostrarTela(id) {
   if (id === 'tela-grupos') carregarGrupos();
   if (id === 'tela-admin') carregarAdmin();
   if (id === 'tela-perfil') carregarPerfil();
+  if (id === 'tela-especial') carregarEspecial();
 }
 
 // ---- AUTH ----
@@ -917,6 +918,121 @@ async function reabrirJogo(jogoId) {
     carregarAdmin();
   } catch (e) {
     mostrarToast('Erro ao reabrir jogo.', 'erro');
+  }
+}
+
+// ---- ESPECIAL ----
+
+async function carregarEspecial() {
+  const resumo = document.getElementById('resumo-especial');
+
+  // Carregar resposta do próprio usuário
+  try {
+    const doc = await db.collection('palpites_especiais').doc(usuarioAtual.uid).get();
+    if (doc.exists) {
+      const d = doc.data();
+      if (d.campeao) document.getElementById('esp-campeao').value = d.campeao;
+      if (d.artilheiro) document.getElementById('esp-artilheiro').value = d.artilheiro;
+      if (d.brasil) document.getElementById('esp-brasil').value = d.brasil;
+
+      // Bloquear edição — respostas já enviadas
+      document.getElementById('esp-campeao').disabled = true;
+      document.getElementById('esp-artilheiro').disabled = true;
+      document.getElementById('esp-brasil').disabled = true;
+      const btnSalvar = document.querySelector('[onclick="salvarEspecial()"]');
+      if (btnSalvar) {
+        btnSalvar.disabled = true;
+        btnSalvar.textContent = '✅ Respostas enviadas';
+        btnSalvar.style.background = 'rgba(255,255,255,0.1)';
+        btnSalvar.style.cursor = 'not-allowed';
+      }
+    }
+  } catch(e) {}
+
+  // Carregar resumo de todos
+  try {
+    const [snapEsp, snapUsuarios] = await Promise.all([
+      db.collection('palpites_especiais').get(),
+      db.collection('usuarios').get()
+    ]);
+
+    const nomesPorUid = {};
+    snapUsuarios.forEach(d => { nomesPorUid[d.id] = d.data().nome || d.data().email; });
+
+    if (snapEsp.size === 0) {
+      resumo.innerHTML = '';
+      return;
+    }
+
+    const respostas = snapEsp.docs.map(d => ({ uid: d.id, ...d.data() }));
+
+    // Contagem campeões
+    const contagemCampeao = {};
+    respostas.forEach(r => {
+      if (r.campeao) contagemCampeao[r.campeao] = (contagemCampeao[r.campeao] || 0) + 1;
+    });
+    const rankCampeao = Object.entries(contagemCampeao).sort((a,b) => b[1]-a[1]);
+
+    // Contagem posição Brasil
+    const contagemBrasil = {};
+    respostas.forEach(r => {
+      if (r.brasil) contagemBrasil[r.brasil] = (contagemBrasil[r.brasil] || 0) + 1;
+    });
+    const rankBrasil = Object.entries(contagemBrasil).sort((a,b) => b[1]-a[1]);
+
+    resumo.innerHTML = `
+      <div class="card" style="margin-bottom:12px;">
+        <h3 style="margin-bottom:12px;">🏆 Apostas no Campeão</h3>
+        ${rankCampeao.map(([time, qt]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+            <span>${obterBandeira(time)} ${time}</span>
+            <span style="color:#f39c12;font-weight:700;">${qt} voto${qt>1?'s':''}</span>
+          </div>`).join('')}
+      </div>
+
+      <div class="card" style="margin-bottom:12px;">
+        <h3 style="margin-bottom:12px;">⚽ Apostas no Artilheiro</h3>
+        ${respostas.filter(r => r.artilheiro).map(r => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+            <span style="color:rgba(255,255,255,0.7);font-size:0.85rem;">${nomesPorUid[r.uid] || ''}</span>
+            <span style="font-weight:700;">${r.artilheiro}</span>
+          </div>`).join('')}
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:12px;">🇧🇷 Apostas na posição do Brasil</h3>
+        ${rankBrasil.map(([pos, qt]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.07);">
+            <span>${pos}</span>
+            <span style="color:#2ecc71;font-weight:700;">${qt} voto${qt>1?'s':''}</span>
+          </div>`).join('')}
+      </div>
+    `;
+  } catch(e) {
+    resumo.innerHTML = '';
+  }
+}
+
+async function salvarEspecial() {
+  const campeao   = document.getElementById('esp-campeao').value;
+  const artilheiro = document.getElementById('esp-artilheiro').value.trim();
+  const brasil    = document.getElementById('esp-brasil').value;
+
+  if (!campeao || !artilheiro || !brasil) {
+    mostrarToast('Preencha todas as respostas!', 'erro');
+    return;
+  }
+
+  try {
+    await db.collection('palpites_especiais').doc(usuarioAtual.uid).set({
+      campeao, artilheiro, brasil,
+      uid: usuarioAtual.uid,
+      atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    mostrarToast('Respostas salvas! 🔮', 'sucesso');
+    carregarEspecial();
+  } catch(e) {
+    mostrarToast('Erro ao salvar.', 'erro');
   }
 }
 
